@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048游戏</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- 添加标题栏图标 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
-    
     <style>
         * {
             margin: 0;
@@ -294,6 +291,164 @@
             margin-top: 20px;
         }
         
+        /* 年龄验证模态框样式 */
+        .age-verification {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .age-verification.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .verification-box {
+            background: linear-gradient(135deg, #0f3460, #1a1a2e);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .verification-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #ff5e5b, #ffd166, #4ade80);
+        }
+        
+        .verification-title {
+            font-size: 2.2rem;
+            color: #ffd166;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .verification-content {
+            color: #e6e6e6;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .verification-content p {
+            margin-bottom: 15px;
+        }
+        
+        .age-input {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            color: #ffd166;
+            font-weight: 600;
+        }
+        
+        .input-group input {
+            padding: 14px;
+            border: 2px solid rgba(255, 209, 102, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            border-color: #ffd166;
+            box-shadow: 0 0 15px rgba(255, 209, 102, 0.3);
+        }
+        
+        .verification-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .verification-buttons button {
+            flex: 1;
+            padding: 15px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .btn-confirm {
+            background: #4ade80;
+            color: #1a1a2e;
+        }
+        
+        .btn-confirm:hover {
+            background: #22c55e;
+        }
+        
+        .btn-cancel {
+            background: #f87171;
+            color: #1a1a2e;
+        }
+        
+        .btn-cancel:hover {
+            background: #ef4444;
+        }
+        
+        .restriction-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 4px solid #ffd166;
+        }
+        
+        .restriction-info h4 {
+            color: #ffd166;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .restriction-info ul {
+            text-align: left;
+            padding-left: 20px;
+            color: #e6e6e6;
+        }
+        
+        .restriction-info li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
         .instructions {
             background: rgba(15, 52, 96, 0.7);
             padding: 20px;
@@ -356,6 +511,41 @@
             margin-top: 5px;
         }
         
+        .restriction-warning {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: pulseWarning 2s infinite;
+        }
+        
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        .restriction-warning i {
+            font-size: 2rem;
+            color: #ef4444;
+        }
+        
+        .restriction-warning p {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .watermark {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
         @media (max-width: 500px) {
             h1 {
                 font-size: 2.5rem;
@@ -405,13 +595,14 @@
                 padding: 10px 15px;
                 font-size: 0.9rem;
             }
-        }
-        
-        .watermark {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 0.8rem;
-            margin-top: 10px;
+            
+            .verification-title {
+                font-size: 1.8rem;
+            }
+            
+            .verification-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -472,6 +663,12 @@
             </div>
         </div>
         
+        <!-- 防沉迷系统警告 -->
+        <div class="restriction-warning" id="restriction-warning" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="warning-text">防沉迷系统已启用，您的游戏时间受到限制</p>
+        </div>
+        
         <div class="instructions">
             <h3><i class="fas fa-info-circle"></i> 游戏说明</h3>
             <p>使用 <span class="key">←</span> <span class="key">→</span> <span class="key">↑</span> <span class="key">↓</span> 方向键移动方块。</p>
@@ -481,7 +678,46 @@
         </div>
         
         <div class="watermark">
-            2048游戏 | 使用HTML5, CSS3和JavaScript构建
+            2048游戏 | 带防沉迷系统 | 使用HTML5, CSS3和JavaScript构建
+        </div>
+    </div>
+    
+    <!-- 年龄验证模态框 -->
+    <div class="age-verification" id="age-verification">
+        <div class="verification-box">
+            <h2 class="verification-title">
+                <i class="fas fa-user-shield"></i> 年龄验证
+            </h2>
+            
+            <div class="verification-content">
+                <p>根据防沉迷系统要求，请验证您的年龄</p>
+                <p>未满18岁的用户将受到游戏时间限制</p>
+                
+                <div class="age-input">
+                    <div class="input-group">
+                        <label for="birthday"><i class="fas fa-birthday-cake"></i> 出生日期</label>
+                        <input type="date" id="birthday" max="2023-12-31">
+                    </div>
+                </div>
+                
+                <div class="restriction-info">
+                    <h4><i class="fas fa-exclamation-circle"></i> 未成年人游戏限制</h4>
+                    <ul>
+                        <li>每日22:00至次日8:00不能进行游戏</li>
+                        <li>法定节假日每日游戏时间不超过3小时</li>
+                        <li>其他时间每日游戏时间不超过1.5小时</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="verification-buttons">
+                <button class="btn-confirm" id="confirm-age">
+                    <i class="fas fa-check"></i> 确认
+                </button>
+                <button class="btn-cancel" id="cancel-age">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+            </div>
         </div>
     </div>
 
@@ -499,6 +735,8 @@
             let maxTile = 0;
             let gameStartTime = 0;
             let gameTimer = null;
+            let ageRestriction = false;
+            let playTimeLimit = 0;
             
             // DOM 元素
             const gridContainer = document.getElementById('grid-container');
@@ -512,6 +750,102 @@
             const maxTileDisplay = document.getElementById('max-tile');
             const gameTimeDisplay = document.getElementById('game-time');
             const finalScoreDisplay = document.getElementById('final-score');
+            const ageVerification = document.getElementById('age-verification');
+            const confirmAgeButton = document.getElementById('confirm-age');
+            const cancelAgeButton = document.getElementById('cancel-age');
+            const birthdayInput = document.getElementById('birthday');
+            const restrictionWarning = document.getElementById('restriction-warning');
+            const warningText = document.getElementById('warning-text');
+            
+            // 检查URL参数
+            function checkUrlParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('age') === 'true';
+            }
+            
+            // 计算年龄
+            function calculateAge(birthday) {
+                const birthDate = new Date(birthday);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                
+                return age;
+            }
+            
+            // 检查是否在限制时间段
+            function isRestrictedTime() {
+                const now = new Date();
+                const hours = now.getHours();
+                // 22:00 - 8:00 为限制时间段
+                return hours >= 22 || hours < 8;
+            }
+            
+            // 显示年龄验证
+            function showAgeVerification() {
+                ageVerification.classList.add('show');
+            }
+            
+            // 隐藏年龄验证
+            function hideAgeVerification() {
+                ageVerification.classList.remove('show');
+            }
+            
+            // 处理年龄验证
+            function handleAgeVerification() {
+                const birthday = birthdayInput.value;
+                
+                if (!birthday) {
+                    alert('请选择您的出生日期');
+                    return;
+                }
+                
+                const age = calculateAge(birthday);
+                
+                if (age < 18) {
+                    ageRestriction = true;
+                    restrictionWarning.style.display = 'flex';
+                    warningText.textContent = `防沉迷系统已启用（未成年人，${age}岁），您的游戏时间受到限制`;
+                    playTimeLimit = 90 * 60 * 1000; // 1.5小时
+                } else {
+                    ageRestriction = false;
+                    restrictionWarning.style.display = 'none';
+                }
+                
+                // 存储验证状态
+                localStorage.setItem('ageVerified', 'true');
+                localStorage.setItem('birthday', birthday);
+                
+                hideAgeVerification();
+                initGame();
+            }
+            
+            // 检查游戏限制
+            function checkGameRestrictions() {
+                if (!ageRestriction) return true;
+                
+                const now = new Date();
+                const hours = now.getHours();
+                
+                // 检查时间段限制
+                if (isRestrictedTime()) {
+                    alert('根据防沉迷系统要求，当前时间段（22:00-8:00）无法进行游戏');
+                    return false;
+                }
+                
+                // 检查游戏时长限制
+                const elapsed = Date.now() - gameStartTime;
+                if (elapsed > playTimeLimit) {
+                    alert('您今天的游戏时间已超过限制，请明天再来');
+                    return false;
+                }
+                
+                return true;
+            }
             
             // 初始化游戏网格
             function initGrid() {
@@ -528,6 +862,11 @@
             
             // 初始化游戏
             function initGame() {
+                // 检查游戏限制
+                if (ageRestriction && !checkGameRestrictions()) {
+                    return;
+                }
+                
                 grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
                 score = 0;
                 moveCount = 0;
@@ -562,6 +901,12 @@
                 gameTimer = setInterval(() => {
                     const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
                     gameTimeDisplay.textContent = `${elapsed}s`;
+                    
+                    // 检查游戏时间限制
+                    if (ageRestriction && (Date.now() - gameStartTime) > playTimeLimit) {
+                        gameOver = true;
+                        showGameOver(false, '游戏时间已超过限制');
+                    }
                 }, 1000);
             }
             
@@ -814,14 +1159,17 @@
             }
             
             // 显示游戏结束消息
-            function showGameOver(isWin) {
+            function showGameOver(isWin, customMessage) {
                 if (gameTimer) {
                     clearInterval(gameTimer);
                 }
                 
                 finalScoreDisplay.textContent = score;
                 
-                if (isWin) {
+                if (customMessage) {
+                    messageText.textContent = customMessage;
+                    messageText.style.color = '#f87171';
+                } else if (isWin) {
                     messageText.textContent = '恭喜你赢了！';
                     messageText.style.color = '#4ade80';
                 } else {
@@ -860,6 +1208,7 @@
             
             // 键盘事件处理
             document.addEventListener('keydown', (e) => {
+                if (gameOver) return;
                 switch (e.key) {
                     case 'ArrowLeft':
                         move('left');
@@ -890,7 +1239,7 @@
             }, { passive: false });
             
             gridContainer.addEventListener('touchend', (e) => {
-                if (!touchStartX || !touchStartY) return;
+                if (!touchStartX || !touchStartY || gameOver) return;
                 
                 const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
@@ -923,10 +1272,33 @@
             // 按钮事件
             newGameButton.addEventListener('click', initGame);
             restartButton.addEventListener('click', initGame);
+            confirmAgeButton.addEventListener('click', handleAgeVerification);
+            cancelAgeButton.addEventListener('click', hideAgeVerification);
             
             // 初始化游戏
             bestScoreDisplay.textContent = bestScore;
-            initGame();
+            
+            // 检查是否需要年龄验证
+            const enableAgeCheck = checkUrlParams();
+            const isAgeVerified = localStorage.getItem('ageVerified') === 'true';
+            
+            if (enableAgeCheck && !isAgeVerified) {
+                showAgeVerification();
+            } else {
+                // 从localStorage获取生日
+                const storedBirthday = localStorage.getItem('birthday');
+                if (storedBirthday) {
+                    const age = calculateAge(storedBirthday);
+                    if (age < 18) {
+                        ageRestriction = true;
+                        restrictionWarning.style.display = 'flex';
+                        warningText.textContent = `防沉迷系统已启用（未成年人，${age}岁），您的游戏时间受到限制`;
+                        playTimeLimit = 90 * 60 * 1000; // 1.5小时
+                    }
+                }
+                
+                initGame();
+            }
         });
     </script>
 </body>
