@@ -539,6 +539,16 @@
             font-weight: 600;
         }
         
+        .cookie-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #a9a9a9;
+            text-align: center;
+        }
+        
         .watermark {
             text-align: center;
             color: rgba(255, 255, 255, 0.3);
@@ -677,8 +687,12 @@
             <p>当棋盘被填满且无法进行合并时，游戏结束。</p>
         </div>
         
+        <div class="cookie-info">
+            <i class="fas fa-cookie-bite"></i> 本游戏使用Cookie存储您的游戏数据和设置
+        </div>
+        
         <div class="watermark">
-            2048游戏 | 带防沉迷系统 | 使用HTML5, CSS3和JavaScript构建
+            2048游戏 | 带防沉迷系统 | 使用Cookie存储数据
         </div>
     </div>
     
@@ -729,7 +743,7 @@
             // 游戏状态
             let grid = [];
             let score = 0;
-            let bestScore = localStorage.getItem('bestScore') || 0;
+            let bestScore = 0;
             let gameOver = false;
             let moveCount = 0;
             let maxTile = 0;
@@ -756,6 +770,32 @@
             const birthdayInput = document.getElementById('birthday');
             const restrictionWarning = document.getElementById('restriction-warning');
             const warningText = document.getElementById('warning-text');
+            
+            // Cookie 操作函数
+            function setCookie(name, value, days) {
+                let expires = "";
+                if (days) {
+                    const date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/";
+            }
+            
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for(let i=0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+            
+            function eraseCookie(name) {   
+                document.cookie = name + '=; Max-Age=-99999999;';  
+            }
             
             // 检查URL参数
             function checkUrlParams() {
@@ -816,9 +856,9 @@
                     restrictionWarning.style.display = 'none';
                 }
                 
-                // 存储验证状态
-                localStorage.setItem('ageVerified', 'true');
-                localStorage.setItem('birthday', birthday);
+                // 存储验证状态到Cookie
+                setCookie('ageVerified', 'true', 365);
+                setCookie('birthday', birthday, 365);
                 
                 hideAgeVerification();
                 initGame();
@@ -1020,9 +1060,50 @@
                         gameOver = true;
                         showGameOver(true);
                     }
+                    
+                    // 保存游戏状态到Cookie
+                    saveGameState();
                 }
                 
                 return moved;
+            }
+            
+            // 保存游戏状态到Cookie
+            function saveGameState() {
+                setCookie('bestScore', bestScore, 30);
+                setCookie('grid', JSON.stringify(grid), 1);
+                setCookie('score', score, 1);
+                setCookie('moveCount', moveCount, 1);
+                setCookie('maxTile', maxTile, 1);
+            }
+            
+            // 加载游戏状态
+            function loadGameState() {
+                // 加载最佳分数
+                const savedBestScore = getCookie('bestScore');
+                if (savedBestScore) {
+                    bestScore = parseInt(savedBestScore);
+                    bestScoreDisplay.textContent = bestScore;
+                }
+                
+                // 加载游戏状态
+                const savedGrid = getCookie('grid');
+                const savedScore = getCookie('score');
+                const savedMoveCount = getCookie('moveCount');
+                const savedMaxTile = getCookie('maxTile');
+                
+                if (savedGrid && savedScore && savedMoveCount && savedMaxTile) {
+                    grid = JSON.parse(savedGrid);
+                    score = parseInt(savedScore);
+                    moveCount = parseInt(savedMoveCount);
+                    maxTile = parseInt(savedMaxTile);
+                    
+                    scoreDisplay.textContent = score;
+                    moveCountDisplay.textContent = moveCount;
+                    maxTileDisplay.textContent = maxTile;
+                    
+                    render();
+                }
             }
             
             // 向左移动
@@ -1187,9 +1268,8 @@
                 // 更新最佳分数
                 if (score > bestScore) {
                     bestScore = score;
-                    localStorage.setItem('bestScore', bestScore);
+                    bestScoreDisplay.textContent = bestScore;
                 }
-                bestScoreDisplay.textContent = bestScore;
             }
             
             // 更新统计信息
@@ -1270,23 +1350,29 @@
             });
             
             // 按钮事件
-            newGameButton.addEventListener('click', initGame);
+            newGameButton.addEventListener('click', () => {
+                // 清除游戏状态Cookie
+                eraseCookie('grid');
+                eraseCookie('score');
+                eraseCookie('moveCount');
+                eraseCookie('maxTile');
+                initGame();
+            });
+            
             restartButton.addEventListener('click', initGame);
             confirmAgeButton.addEventListener('click', handleAgeVerification);
             cancelAgeButton.addEventListener('click', hideAgeVerification);
             
             // 初始化游戏
-            bestScoreDisplay.textContent = bestScore;
-            
             // 检查是否需要年龄验证
             const enableAgeCheck = checkUrlParams();
-            const isAgeVerified = localStorage.getItem('ageVerified') === 'true';
+            const isAgeVerified = getCookie('ageVerified') === 'true';
             
             if (enableAgeCheck && !isAgeVerified) {
                 showAgeVerification();
             } else {
-                // 从localStorage获取生日
-                const storedBirthday = localStorage.getItem('birthday');
+                // 从Cookie获取生日
+                const storedBirthday = getCookie('birthday');
                 if (storedBirthday) {
                     const age = calculateAge(storedBirthday);
                     if (age < 18) {
@@ -1297,7 +1383,16 @@
                     }
                 }
                 
-                initGame();
+                // 加载游戏状态
+                loadGameState();
+                
+                // 如果没有加载到游戏状态，初始化新游戏
+                if (!getCookie('grid')) {
+                    initGame();
+                } else {
+                    // 开始游戏计时
+                    startGameTimer();
+                }
             }
         });
     </script>
