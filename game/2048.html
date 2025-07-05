@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048游戏</title>
+    <title>2048游戏 - 防沉迷系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
     <style>
@@ -12,6 +12,10 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         
         body {
@@ -22,6 +26,7 @@
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: #fff;
             padding: 20px;
+            overflow: hidden;
         }
         
         .container {
@@ -549,11 +554,58 @@
             text-align: center;
         }
         
+        .security-note {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #a9a9a9;
+            text-align: center;
+            border: 1px solid rgba(255, 209, 102, 0.3);
+        }
+        
         .watermark {
             text-align: center;
             color: rgba(255, 255, 255, 0.3);
             font-size: 0.8rem;
             margin-top: 10px;
+        }
+        
+        .devtools-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: #ff5e5b;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .devtools-warning h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .devtools-warning p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .devtools-warning button {
+            background: #ff5e5b;
+            color: white;
+            font-size: 1.1rem;
+            padding: 12px 30px;
         }
         
         @media (max-width: 500px) {
@@ -612,6 +664,14 @@
             
             .verification-buttons {
                 flex-direction: column;
+            }
+            
+            .devtools-warning h2 {
+                font-size: 1.8rem;
+            }
+            
+            .devtools-warning p {
+                font-size: 1rem;
             }
         }
     </style>
@@ -691,8 +751,12 @@
             <i class="fas fa-cookie-bite"></i> 本游戏使用Cookie存储您的游戏数据和设置
         </div>
         
+        <div class="security-note">
+            <i class="fas fa-shield-alt"></i> 为保护游戏数据安全，开发者工具已被禁用
+        </div>
+        
         <div class="watermark">
-            2048游戏 | 带防沉迷系统 | 使用Cookie存储数据
+            2048游戏 | 带防沉迷系统 | 使用Cookie存储数据 | 安全模式
         </div>
     </div>
     
@@ -734,9 +798,88 @@
             </div>
         </div>
     </div>
+    
+    <!-- 开发者工具警告 -->
+    <div class="devtools-warning" id="devtools-warning" style="display: none;">
+        <h2><i class="fas fa-exclamation-triangle"></i> 安全警告</h2>
+        <p>检测到开发者工具已打开。为保护游戏数据安全，此功能已被禁用。</p>
+        <p>请关闭开发者工具以继续游戏。</p>
+        <button id="devtools-continue">继续游戏</button>
+    </div>
 
     <script>
+        // 禁用开发者工具函数
+        function disableDevTools() {
+            // 禁用右键菜单
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // 禁用F12、Ctrl+Shift+I等开发者工具快捷键
+            document.addEventListener('keydown', function(e) {
+                // 禁用F12
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                
+                // 禁用Ctrl+Shift+I (Chrome, Firefox)
+                if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                
+                // 禁用Ctrl+Shift+J (Chrome)
+                if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                
+                // 禁用Ctrl+Shift+C (Chrome)
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                
+                // 禁用Ctrl+U (查看源代码)
+                if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+            });
+            
+            // 定期检查开发者工具状态
+            setInterval(function() {
+                const threshold = 160; // 窗口高度阈值
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                
+                if (heightThreshold || widthThreshold) {
+                    showDevToolsWarning();
+                }
+            }, 1000);
+        }
+        
+        // 显示开发者工具警告
+        function showDevToolsWarning() {
+            document.getElementById('devtools-warning').style.display = 'flex';
+        }
+        
+        // 隐藏开发者工具警告
+        function hideDevToolsWarning() {
+            document.getElementById('devtools-warning').style.display = 'none';
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化禁用开发者工具
+            disableDevTools();
+            
             // 游戏常量
             const GRID_SIZE = 4;
             
@@ -770,6 +913,7 @@
             const birthdayInput = document.getElementById('birthday');
             const restrictionWarning = document.getElementById('restriction-warning');
             const warningText = document.getElementById('warning-text');
+            const devtoolsContinueButton = document.getElementById('devtools-continue');
             
             // Cookie 操作函数
             function setCookie(name, value, days) {
@@ -779,7 +923,7 @@
                     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
                     expires = "; expires=" + date.toUTCString();
                 }
-                document.cookie = name + "=" + (value || "") + expires + "; path=/";
+                document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict; Secure";
             }
             
             function getCookie(name) {
@@ -794,7 +938,7 @@
             }
             
             function eraseCookie(name) {   
-                document.cookie = name + '=; Max-Age=-99999999;';  
+                document.cookie = name + '=; Max-Age=-99999999; path=/;';  
             }
             
             // 检查URL参数
@@ -1362,6 +1506,7 @@
             restartButton.addEventListener('click', initGame);
             confirmAgeButton.addEventListener('click', handleAgeVerification);
             cancelAgeButton.addEventListener('click', hideAgeVerification);
+            devtoolsContinueButton.addEventListener('click', hideDevToolsWarning);
             
             // 初始化游戏
             // 检查是否需要年龄验证
