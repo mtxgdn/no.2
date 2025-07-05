@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048游戏</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 添加标题栏图标 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
+    
     <style>
         * {
             margin: 0;
@@ -35,6 +39,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
         }
         
         h1 {
@@ -42,6 +47,25 @@
             font-weight: 700;
             color: #ffd166;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon-container {
+            background: #ffd166;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .icon-container i {
+            font-size: 2.5rem;
+            color: #1a1a2e;
         }
         
         .scores {
@@ -56,6 +80,18 @@
             text-align: center;
             min-width: 100px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .score-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #ffd166;
         }
         
         .score-title {
@@ -75,6 +111,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(15, 52, 96, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
         .description {
@@ -82,6 +122,10 @@
             color: #a9a9a9;
             font-size: 0.95rem;
             line-height: 1.5;
+        }
+        
+        .description strong {
+            color: #ffd166;
         }
         
         .controls {
@@ -93,17 +137,21 @@
             background: #ffd166;
             color: #1a1a2e;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 6px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         button:hover {
             background: #ffb347;
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
         }
         
         .game-container {
@@ -114,7 +162,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
-        /* 修复的关键部分：使用Grid布局定位 */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -124,13 +171,14 @@
             padding: 10px;
             border-radius: 8px;
             position: relative;
-            aspect-ratio: 1/1; /* 确保网格为正方形 */
+            aspect-ratio: 1/1;
         }
         
         .grid-cell {
             background: rgba(79, 93, 117, 0.35);
             border-radius: 6px;
             position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
         
         .tile {
@@ -179,8 +227,26 @@
         .tile-256 { background: #ffb347; color: #1a1a2e; font-size: 1.7rem; }
         .tile-512 { background: #ff9a3c; color: #fff; font-size: 1.7rem; }
         .tile-1024 { background: #ff7733; color: #fff; font-size: 1.5rem; }
-        .tile-2048 { background: #ff5e5b; color: #fff; font-size: 1.5rem; box-shadow: 0 0 20px rgba(255, 94, 91, 0.6); }
-        .tile-super { background: #3d0e61; color: #fff; font-size: 1.3rem; box-shadow: 0 0 20px rgba(61, 14, 97, 0.6); }
+        .tile-2048 { 
+            background: #ff5e5b; 
+            color: #fff; 
+            font-size: 1.5rem; 
+            box-shadow: 0 0 20px rgba(255, 94, 91, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+        .tile-super { 
+            background: #3d0e61; 
+            color: #fff; 
+            font-size: 1.3rem; 
+            box-shadow: 0 0 20px rgba(61, 14, 97, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 94, 91, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(255, 94, 91, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(255, 94, 91, 0.6); }
+        }
         
         .game-message {
             position: absolute;
@@ -188,7 +254,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.85);
             border-radius: 10px;
             display: flex;
             flex-direction: column;
@@ -199,6 +265,8 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
+            padding: 20px;
+            text-align: center;
         }
         
         .game-message.show {
@@ -211,15 +279,23 @@
             font-weight: 700;
             color: #fff;
             text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .game-message .final-score {
+            font-size: 1.5rem;
+            color: #ffd166;
+            margin: 10px 0;
         }
         
         .game-message button {
             font-size: 1.2rem;
             padding: 15px 40px;
+            margin-top: 20px;
         }
         
         .instructions {
-            background: #0f3460;
+            background: rgba(15, 52, 96, 0.7);
             padding: 20px;
             border-radius: 10px;
             margin-top: 10px;
@@ -230,6 +306,9 @@
             color: #ffd166;
             margin-bottom: 15px;
             font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .instructions p {
@@ -239,13 +318,17 @@
         }
         
         .key {
-            display: inline-block;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin: 0 2px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin: 0 3px;
             font-size: 0.9rem;
+            min-width: 30px;
+            height: 30px;
         }
         
         .stats {
@@ -254,11 +337,37 @@
             margin-top: 10px;
             font-size: 0.9rem;
             color: #a9a9a9;
+            background: rgba(15, 52, 96, 0.7);
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #ffd166;
+            margin-top: 5px;
         }
         
         @media (max-width: 500px) {
             h1 {
                 font-size: 2.5rem;
+            }
+            
+            .icon-container {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .icon-container i {
+                font-size: 2rem;
             }
             
             .score-box {
@@ -291,13 +400,30 @@
             .game-message p {
                 font-size: 2rem;
             }
+            
+            button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .watermark {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>2048</h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="icon-container">
+                    <i class="fas fa-th-large"></i>
+                </div>
+                <h1>2048</h1>
+            </div>
             <div class="scores">
                 <div class="score-box">
                     <div class="score-title">分数</div>
@@ -312,7 +438,7 @@
         
         <div class="game-info">
             <div class="description">
-                合并相同数字的方块，到达<b>2048</b>！
+                合并相同数字的方块，到达<strong>2048</strong>！
             </div>
             <div class="controls">
                 <button id="new-game"><i class="fas fa-plus-circle"></i> 新游戏</button>
@@ -326,21 +452,36 @@
             
             <div class="game-message" id="game-message">
                 <p id="message-text"></p>
+                <div class="final-score">最终分数: <span id="final-score">0</span></div>
                 <button id="restart-button"><i class="fas fa-redo"></i> 再试一次</button>
             </div>
         </div>
         
         <div class="stats">
-            <div>移动次数: <span id="move-count">0</span></div>
-            <div>最高方块: <span id="max-tile">0</span></div>
+            <div class="stat-box">
+                <div>移动次数</div>
+                <div class="stat-value" id="move-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div>最高方块</div>
+                <div class="stat-value" id="max-tile">0</div>
+            </div>
+            <div class="stat-box">
+                <div>游戏时长</div>
+                <div class="stat-value" id="game-time">0s</div>
+            </div>
         </div>
         
         <div class="instructions">
-            <h3>游戏说明</h3>
+            <h3><i class="fas fa-info-circle"></i> 游戏说明</h3>
             <p>使用 <span class="key">←</span> <span class="key">→</span> <span class="key">↑</span> <span class="key">↓</span> 方向键移动方块。</p>
-            <p>当两个相同数字的方块碰撞时，它们会<b>合并成一个新方块</b>，数字是它们的总和。</p>
-            <p>每次移动后，会在空白位置随机生成一个数字为<b>2</b>或<b>4</b>的新方块。</p>
+            <p>当两个相同数字的方块碰撞时，它们会<strong>合并成一个新方块</strong>，数字是它们的总和。</p>
+            <p>每次移动后，会在空白位置随机生成一个数字为<strong>2</strong>或<strong>4</strong>的新方块。</p>
             <p>当棋盘被填满且无法进行合并时，游戏结束。</p>
+        </div>
+        
+        <div class="watermark">
+            2048游戏 | 使用HTML5, CSS3和JavaScript构建
         </div>
     </div>
 
@@ -356,6 +497,8 @@
             let gameOver = false;
             let moveCount = 0;
             let maxTile = 0;
+            let gameStartTime = 0;
+            let gameTimer = null;
             
             // DOM 元素
             const gridContainer = document.getElementById('grid-container');
@@ -367,6 +510,8 @@
             const newGameButton = document.getElementById('new-game');
             const moveCountDisplay = document.getElementById('move-count');
             const maxTileDisplay = document.getElementById('max-tile');
+            const gameTimeDisplay = document.getElementById('game-time');
+            const finalScoreDisplay = document.getElementById('final-score');
             
             // 初始化游戏网格
             function initGrid() {
@@ -403,6 +548,21 @@
                 
                 // 渲染网格
                 render();
+                
+                // 开始游戏计时
+                startGameTimer();
+            }
+            
+            // 开始游戏计时
+            function startGameTimer() {
+                if (gameTimer) {
+                    clearInterval(gameTimer);
+                }
+                gameStartTime = Date.now();
+                gameTimer = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                    gameTimeDisplay.textContent = `${elapsed}s`;
+                }, 1000);
             }
             
             // 添加随机方块
@@ -655,6 +815,12 @@
             
             // 显示游戏结束消息
             function showGameOver(isWin) {
+                if (gameTimer) {
+                    clearInterval(gameTimer);
+                }
+                
+                finalScoreDisplay.textContent = score;
+                
                 if (isWin) {
                     messageText.textContent = '恭喜你赢了！';
                     messageText.style.color = '#4ade80';
